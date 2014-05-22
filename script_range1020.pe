@@ -1,0 +1,36 @@
+Open("DGFont2.ttf");
+
+start = Strtol($1);
+end = Strtol($2);
+
+//arr = Array(end-start+1);
+arr = Array(65536);
+PostNotice(ToString(end-start+1));
+
+i=0;
+//while(i<end-start+1)
+while(i<65536)
+	//arr[i] = i+start;
+	if ( i>=start && i<=end )
+		arr[i] = 1;
+	else
+		arr[i] = 0;
+	endif
+
+	//PostNotice(ToString(i)+":"+(i+start));
+	//PostNotice(ToString(arr[i]));
+
+	//Select(arr[i]);
+	//PostNotice(ToString($selection));
+	//Clear();
+
+	i = i+1;
+
+endloop
+
+Select(arr);
+Clear();
+PostNotice("preparing generating fonts...");
+
+Generate("DGFont2.ttf");
+
