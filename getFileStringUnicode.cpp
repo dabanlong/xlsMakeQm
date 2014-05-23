@@ -1,26 +1,18 @@
+#define _XOPEN_SOURCE 500
 #include "getFileStringUnicode.h"
+#include <unistd.h>
+#include <ftw.h>
 #include <iterator>
+#include <algorithm>
+
 using namespace std;
 
-GetFileStringUnicode::GetFileStringUnicode(const QString &filterType, QDir inPath)
-	: path(inPath)
+GetFileStringUnicode::GetFileStringUnicode(string filePath)
+	: path(filePath)
 {
-	fileList = getFilterFileList(filterType, path);
-	xlsHandlers.resize(fileList.count());	
+	openXlsFile();
 }
-	
-
-/*Get the file list with specific type*/
-QStringList GetFileStringUnicode::getFilterFileList(const QString &filterType, QDir path)
-{
-	QStringList nameFilter(filterType);
-	path.setNameFilters(nameFilter);
-	QStringList fileStringList;
-	fileStringList = path.entryList(nameFilter, QDir::Files, QDir::Name);
-	return fileStringList;
-}
-
-
+/*
 void GetFileStringUnicode::dumpCharacter(const QStringList &stringList, QList<ushort> &list, QString path)
 {
 	cout << path.toStdString() << endl;
@@ -43,7 +35,8 @@ void GetFileStringUnicode::dumpCharacter(const QStringList &stringList, QList<us
 	qSort(list);
 	list.erase(std::unique(list.begin(), list.end()), list.end());//erase duplicate element
 }
-
+*/
+/*
 void GetFileStringUnicode::generateScriptContext(QTextStream &script, QString &fileName)
 {
 
@@ -53,8 +46,9 @@ void GetFileStringUnicode::generateScriptContext(QTextStream &script, QString &f
 	       << QString("PostNotice(\"preparing generating fonts of %1 ...\")").arg(fileName) << endl
 	       << QString("Generate(\"%1/%2\");").arg(path.path()).arg(fileName) << endl;
 }
-
+*/
 /*Generate script file for fontforge*/
+/*
 int GetFileStringUnicode::generateScript()
 {
 	QFile scriptFile("./script.pe");
@@ -86,8 +80,9 @@ int GetFileStringUnicode::generateScript()
 	scriptFile.close();
 	return 1;
 }
-
+*/
 /*Export used character list and their unicode*/
+/*
 void GetFileStringUnicode::exportCharAndNumber(const QString &textFileName, const QString &codeFileName)
 {
 	QFile fileo(codeFileName);
@@ -105,24 +100,24 @@ void GetFileStringUnicode::exportCharAndNumber(const QString &textFileName, cons
 	fileo.close();
 	textResultFile.close();
 }
+*/
 
 /*Reset*/
 void GetFileStringUnicode::clear()
 {
 	result.clear();
-	delRange.clear();
-	fileList.clear();
-	xlsHandlers.clear();
-	path.refresh();
+	//xlsHandlers.clear();
+	path=="";
 }
 
 
-void GetFileStringUnicode::setPath(const QString &fileName)
+void GetFileStringUnicode::setPath(std::string& fileName)
 {
-	path.setPath(fileName);
+	path=fileName;
 }
 
 /*Using fontforge to make the smaller font files*/
+/*
 int GetFileStringUnicode::generateFont()
 {
 	if(!generateScript())
@@ -132,21 +127,21 @@ int GetFileStringUnicode::generateFont()
 	}
 	try
 	{
-		int error = system("fontforge -script script.pe");	
+		int error = system("fontforge -script script.pe");
 		if(error==-1)throw -1;
 	}
 	catch(int err)
 	{
 		perror("System function error: ");
 		return err;
-	}	
+	}
 }
-
+*/
 /*
 *  Give the range for adding or removing characters
 *  status 1:add, 2:remove
 */
-void GetFileStringUnicode::modifyFontRange(ushort start, ushort end, int status)
+void GetFileStringUnicode::modifyFontRange(unsigned short start, unsigned short end, int status)
 {
 	int range=end-start;
 	switch(status)
@@ -166,30 +161,40 @@ void GetFileStringUnicode::modifyFontRange(ushort start, ushort end, int status)
 void GetFileStringUnicode::generateTSFile()
 {
 	//for(auto i:xlsHandlers)i.generateTSFile();
-	xlsHandlers[1].generateTSFile();
+	xlsHandlers.generateTSFile();
 }
 
 /*Get all used character from xls file*/
 int GetFileStringUnicode::parseUsedCharacter()
 {
-	if(fileList.empty())
+	if(access(path.c_str(), F_OK)==-1)
 	{
 		cerr<<"xls file not found"<<endl;
 		return -1;
 	}
-	QString filePath;
-	for(int i = 0; i < fileList.count(); ++i)
+
+	for(int i = 0; i < 1; ++i) //504g6vu0 53u.3u ek7 one xlshandler
 	{
-		filePath = path.path() + QString("/") + fileList[i];
-		cout << filePath.toStdString() << endl;;
-		xlsHandlers[i].setXlsFile(const_cast<char*>(filePath.toStdString().c_str()));
-		xlsHandlers[i].dumpStringToUnicode();
-		set<ushort> tmpList = xlsHandlers[i].getCodeList();
-		result.insert(tmpList.begin(), tmpList.end());
-	}	
-	return 1;
+		xlsHandlers.setXlsFile(const_cast<char*>(path.c_str()));
+		//xlsHandlers[i].dumpStringToUnicode();
+	}
+	return 0;
 }
-	
+
+int GetFileStringUnicode::openXlsFile()
+{
+	if(access(path.c_str(), F_OK)==-1)
+	{
+		cerr<<"xls file not found"<<endl;
+		return -1;
+	}
+	if(xlsHandlers.setXlsFile(const_cast<char*>(path.c_str())))
+		return -1;
+	xlsHandlers.showBookInfo();
+	return 0;
+}
+
+
 GetFileStringUnicode::~GetFileStringUnicode()
 {
 

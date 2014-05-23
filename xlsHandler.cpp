@@ -1,12 +1,9 @@
-#include <QString>
-#include <QTextCodec>
-#include <QTextStream>
-#include <QFile>
 #include <algorithm>
 #include <set>
 #include <iostream>
 #include "xlsHandler.h"
 #include <stdio.h>
+/*
 const std::string LANGUAGE_STRINGS[]=
 {
 	"en_US",
@@ -34,53 +31,63 @@ const std::string LANGUAGE_STRINGS[]=
 	"en_US2",
 	"cs_CZ"
 };
-XlsHandler::XlsHandler(char* fileName, char* type):pWB(nullptr), pWS(nullptr)
+*/
+XlsHandler::XlsHandler(char* fileName, char* type)
+	:pWB(NULL), pWS(NULL)
 {
-	setXlsFile(fileName, type);	
+	setXlsFile(fileName, type);
 }
 
 int XlsHandler::dumpStringToUnicode()
 {
-	if(pWB != nullptr)
+	if(pWB != NULL)
 	{
 		/*dump all cell's string*/
-		QTextCodec::setCodecForCStrings(QTextCodec::codecForName("utf8"));
+		//QTextCodec::setCodecForCStrings(QTextCodec::codecForName("utf8"));
 		for(int i = 0; i < pWB->sheets.count; i++)
-		{		
+		{
 			pWS = xls_getWorkSheet(pWB, i);
-			xls_parseWorkSheet(pWS);			
+			xls_parseWorkSheet(pWS);
 			for(int t = 0; t <= pWS->rows.lastrow; t++)
-			{			
+			{
 				for(int tt = 0; tt <= pWS->rows.lastcol; tt++)
 				{
-					QString tmpString(pWS->rows.row[t].cells.cell[tt].str);
-					for(auto i : tmpString)cellStrUnicodeList.insert(i.unicode());
+					//QString tmpString(pWS->rows.row[t].cells.cell[tt].str);
+					//for(auto i : tmpString)cellStrUnicodeList.insert(i.unicode());
 				}
 			}
-		}		
+		}
 		return 1;
 	}
 	else
 		return -1;
 
 }
-void XlsHandler::setXlsFile(char* fileName, char* type)
+int XlsHandler::setXlsFile(char* fileName, char* type)
 {
 	pWB=xls_open(fileName, type);
+	if(pWB==NULL)
+		return -1;
+	return 0;
 }
 
+void XlsHandler::getLangCodeList()
+{
+
+}
 void XlsHandler::showBookInfo()
 {
 	for(int c = 0; c < pWB->sheets.count; c++)
-	{		
+	{
 		pWS = xls_getWorkSheet(pWB, c);
 		xls_parseWorkSheet(pWS);
 		for(int t = 0; t <= pWS->rows.lastrow; t++)
 		{
 			for(int tt = 0; tt <= pWS->rows.lastcol; tt++)
 			{
-				QString tmpString(pWS->rows.row[t].cells.cell[tt].str);
-				std::cout<<tmpString.toStdString()<<std::endl;
+				//QString tmpString(pWS->rows.row[t].cells.cell[tt].str);
+				std::string tmpString(pWS->rows.row[t].cells.cell[tt].str);
+				std::cout<<tmpString<<std::endl;
 			}
 		}
 	}
@@ -92,6 +99,7 @@ void XlsHandler::showBookInfo()
 */
 void XlsHandler::generateTSFile()
 {
+#if 0
 	for(int i=0; i<pWB->sheets.count; ++i)
 	{
 		QFile fileo(QString("./ts_output/%1.ts").arg(QString::fromStdString(LANGUAGE_STRINGS[i])));
@@ -120,6 +128,7 @@ void XlsHandler::generateTSFile()
 		fileo.close();
 	}
 	system("lrelease ./ts_output/*.ts");
+#endif
 }
 
 XlsHandler::~XlsHandler(){}
