@@ -1,12 +1,12 @@
 SUBDIRS = .
 
-AM_CPPFLAGS = -I$(HOME)/include -L$(HOME)/lib -std=c++0x
+AM_CPPFLAGS = -I$(HOME)/include -I$(PWD)/libxls-0.2.0/include -L$(HOME)/lib -std=c++0x
 
 bin_PROGRAMS = genqm
 genqm_CFLAGS  = $(GTK_CFLAGS)
-genqm_LDADD   = $(GTK_LIBS) $(INTLLIBS) -L$(HOME)/lib  -lxlsreader -liconv -lm
+genqm_LDADD   = $(GTK_LIBS) $(INTLLIBS) -L$(HOME)/lib -lxlsreader -liconv -lm
 genqm_SOURCES = main.cpp\
-				getFileStringUnicode.cpp\
-				getFileStringUnicode.h\
+				ParseGuiString.cpp\
+				ParseGuiString.h\
 				xlsHandler.h\
 				xlsHandler.cpp

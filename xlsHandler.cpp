@@ -1,8 +1,16 @@
 #include <algorithm>
 #include <set>
 #include <iostream>
-#include "xlsHandler.h"
 #include <stdio.h>
+#include <fstream>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include "xlsHandler.h"
+
 /*
 const std::string LANGUAGE_STRINGS[]=
 {
@@ -33,7 +41,7 @@ const std::string LANGUAGE_STRINGS[]=
 };
 */
 XlsHandler::XlsHandler(char* fileName, char* type)
-	:pWB(NULL), pWS(NULL)
+	: pWB(NULL), pWS(NULL)
 {
 	setXlsFile(fileName, type);
 }
@@ -63,17 +71,32 @@ int XlsHandler::dumpStringToUnicode()
 		return -1;
 
 }
-int XlsHandler::setXlsFile(char* fileName, char* type)
+int XlsHandler::setXlsFile(const char* fileName, char* type)
 {
-	pWB=xls_open(fileName, type);
-	if(pWB==NULL)
+	pWB = xls_open(const_cast<char*>(fileName), type);
+	if(pWB == NULL)
 		return -1;
-	return 0;
+	else
+		return 0;
 }
 
 void XlsHandler::getLangCodeList()
 {
-
+	for(int c = 0; c < pWB->sheets.count; c++)
+	{
+		pWS = xls_getWorkSheet(pWB, c);
+		xls_parseWorkSheet(pWS);
+		for(int tt = 1; tt <= pWS->rows.lastcol; tt++)
+		{
+			string tmpString;
+			//QString tmpString(pWS->rows.row[t].cells.cell[tt].str);
+			if(pWS->rows.row[1].cells.cell[tt].str)
+			{
+				tmpString = pWS->rows.row[1].cells.cell[tt].str;
+				langCodeList.push_back(tmpString);
+			}
+		}
+	}
 }
 void XlsHandler::showBookInfo()
 {
@@ -83,12 +106,24 @@ void XlsHandler::showBookInfo()
 		xls_parseWorkSheet(pWS);
 		for(int t = 0; t <= pWS->rows.lastrow; t++)
 		{
+			int char_num=0;
 			for(int tt = 0; tt <= pWS->rows.lastcol; tt++)
 			{
+				string tmpString;
 				//QString tmpString(pWS->rows.row[t].cells.cell[tt].str);
-				std::string tmpString(pWS->rows.row[t].cells.cell[tt].str);
-				std::cout<<tmpString<<std::endl;
+				if(pWS->rows.row[t].cells.cell[tt].str)
+					tmpString = pWS->rows.row[t].cells.cell[tt].str;
+				else
+					tmpString = "";
+				char_num+=tmpString.size()+1;
+				std::cout << tmpString << "|";
 			}
+			std::cout << endl;
+			for(int tt = 0; tt <= char_num; tt++)
+			{
+				std::cout << "-";
+			}
+			std::cout << endl;
 		}
 	}
 }
@@ -99,37 +134,94 @@ void XlsHandler::showBookInfo()
 */
 void XlsHandler::generateTSFile()
 {
+	if(access("ts_output", X_OK)!=0)
+	{
+		int status = mkdir("ts_output", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		if(status == -1)
+			fprintf(stderr, "create dir error: %s\n", strerror(errno));
+	}
+
+	pWS = xls_getWorkSheet(pWB, 0);
+	xls_parseWorkSheet(pWS);
+	for(int tt = 0; tt <= pWS->rows.lastcol; tt++)
+	{
+		if(tt == 0)
+		{
+			for(int t = 2; t <= pWS->rows.lastrow; t++)
+			{
+				if(pWS->rows.row[t].cells.cell[tt].str)
+					sourceStringList.push_back(pWS->rows.row[t].cells.cell[tt].str);
+				else
+					sourceStringList.push_back("");
+			}
+		}
+		else if(tt > 0)
+		{
+			if(pWS->rows.row[1].cells.cell[tt].str)//check the language code
+			{
+				string filename;
+				filename+="ts_output/";
+				filename+=pWS->rows.row[1].cells.cell[tt].str;
+				filename+=".ts";
+				std::ofstream ofs(filename, std::ofstream::out | std::ofstream::trunc);
+				ofs << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << endl
+				    << "<TS version=\"2.0\" language=\""<< "" <<pWS->rows.row[1].cells.cell[tt].str<<"\">"<<endl
+				    << "<context>"<<endl
+				    << "<name>QObject</name>" << endl;
+
+				vector<string>::iterator iter = sourceStringList.begin();
+				for(int t = 2; t <= pWS->rows.lastrow; t++)
+				{
+					string targetString;
+					if(pWS->rows.row[t].cells.cell[tt].str)
+						targetString = pWS->rows.row[t].cells.cell[tt].str;
+					else
+						targetString = "";
+					ofs << "<message>" <<endl
+						<< "<source>" << *iter++ << "</source>"<<endl
+						<< "<translation>" << targetString << "</translation>" <<endl
+						<< "</message>" <<endl;
+				}
+				ofs << "</context>" <<endl
+					<< "</TS>" <<endl;
+				ofs.close();
+				cout<< "Generate "<<filename<<" ... done."<<endl;
+			}
+			else
+				break;
+		}
+	}
 #if 0
-	for(int i=0; i<pWB->sheets.count; ++i)
+	for(int i = 0; i < pWB->sheets.count; ++i)
 	{
 		QFile fileo(QString("./ts_output/%1.ts").arg(QString::fromStdString(LANGUAGE_STRINGS[i])));
-		fileo.open(QIODevice::WriteOnly | QIODevice::Text |QIODevice::Truncate);
+		fileo.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
 		QTextStream streamo(&fileo);
 		streamo.setCodec("UTF-8");
-		streamo<<"<?xml version=\"1.0\" encoding=\"utf-8\"?>"<<endl
-			   <<QString("<TS version=\"2.0\" language=\"%1\"><context>").arg(QString::fromStdString(LANGUAGE_STRINGS[i]))<<endl
-			   <<"<name>QObject</name>"<<endl;
+		streamo << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << endl
+		        << QString("<TS version=\"2.0\" language=\"%1\"><context>").arg(QString::fromStdString(LANGUAGE_STRINGS[i])) << endl
+		        << "<name>QObject</name>" << endl;
 		pWS = xls_getWorkSheet(pWB, i);
 		xls_parseWorkSheet(pWS);
-		for(int j=1; j<pWS->rows.lastrow; ++j)
+		for(int j = 1; j < pWS->rows.lastrow; ++j)
 		{
-			QString tmpTitleStr(QString(pWS->rows.row[j].cells.cell[0].str).replace("&","&amp;"));
-			QString transStr(QString(pWS->rows.row[j].cells.cell[1].str).replace("&","&amp;"));
-			if(tmpTitleStr.isEmpty()||tmpTitleStr==QString::number(0))break;
-			streamo<<"<message>"<<endl
-				   <<QString("<source>%1</source>").arg(tmpTitleStr)<<endl;
+			QString tmpTitleStr(QString(pWS->rows.row[j].cells.cell[0].str).replace("&", "&amp;"));
+			QString transStr(QString(pWS->rows.row[j].cells.cell[1].str).replace("&", "&amp;"));
+			if(tmpTitleStr.isEmpty() || tmpTitleStr == QString::number(0))break;
+			streamo << "<message>" << endl
+			        << QString("<source>%1</source>").arg(tmpTitleStr) << endl;
 			/*Filter null character and weird 0 character*/
-			if(!(transStr.isEmpty()||transStr==QString::number(0)))
-				streamo<<QString("<translation>%1</translation>").arg(transStr)<<endl;
-				streamo<<"</message>"<<endl;
+			if(!(transStr.isEmpty() || transStr == QString::number(0)))
+				streamo << QString("<translation>%1</translation>").arg(transStr) << endl;
+			streamo << "</message>" << endl;
 		}
-		streamo<<"</context>"<<endl
-			   <<"</TS>"<<endl;
+		streamo << "</context>" << endl
+		        << "</TS>" << endl;
 		fileo.close();
 	}
 	system("lrelease ./ts_output/*.ts");
 #endif
 }
 
-XlsHandler::~XlsHandler(){}
+XlsHandler::~XlsHandler() {}
 

@@ -94,7 +94,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_genqm_OBJECTS = main.$(OBJEXT) getFileStringUnicode.$(OBJEXT) \
+am_genqm_OBJECTS = main.$(OBJEXT) ParseGuiString.$(OBJEXT) \
 	xlsHandler.$(OBJEXT)
 genqm_OBJECTS = $(am_genqm_OBJECTS)
 genqm_DEPENDENCIES =
@@ -319,12 +319,12 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = .
-AM_CPPFLAGS = -I$(HOME)/include -L$(HOME)/lib -std=c++0x
+AM_CPPFLAGS = -I$(HOME)/include -I$(PWD)/libxls-0.2.0/include -L$(HOME)/lib -std=c++0x
 genqm_CFLAGS = $(GTK_CFLAGS)
-genqm_LDADD = $(GTK_LIBS) $(INTLLIBS) -L$(HOME)/lib  -lxlsreader -liconv -lm
+genqm_LDADD = $(GTK_LIBS) $(INTLLIBS) -L$(HOME)/lib -lxlsreader -liconv -lm
 genqm_SOURCES = main.cpp\
-				getFileStringUnicode.cpp\
-				getFileStringUnicode.h\
+				ParseGuiString.cpp\
+				ParseGuiString.h\
 				xlsHandler.h\
 				xlsHandler.cpp
 
@@ -435,7 +435,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getFileStringUnicode.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ParseGuiString.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xlsHandler.Po@am__quote@
 

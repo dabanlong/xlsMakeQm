@@ -4,33 +4,55 @@
 #include <string>
 #include <set>
 #include <unistd.h>
+#include <fstream>
+#include <errno.h>
+#include <string.h>
 
 #include "xlsHandler.h"
-#include "getFileStringUnicode.h"
+#include "ParseGuiString.h"
 
 using namespace std;
+
+static void print_usage()
+{
+	cout << "Usage: genqm [arg1] [filepath]" << endl;
+	cout << "args:\n";
+	cout << "  -c,\tParse strings in QObject::tr() and generate xml file.\n";
+	cout << "     \tIt will get all source GUI strings, and make a xml file for you to make a xls file.\n";
+	cout << "  -x,\tGenerate qm files from given xls files.\n";
+}
 
 int main(int argc, char **argv)
 {
 	char current_dir[256];
 	getcwd(current_dir, 256);
 
-	if(argc > 2)
+	if(argc > 3 || argc<3)
 	{
-		cout << "Usage: ..." << endl;
+		print_usage();
 		return -1;
 	}
-	else if(argc == 2)
+	ParseGuiString fileHandler;
+	switch(*(argv[1]+1))
 	{
-		snprintf(current_dir, 256, "%s", argv[1]);
-	}
+		case 'c':
+			fileHandler.parseStringsInTr(argv[2]);
+			break;
+		case 'x':
+			if(fileHandler.openXlsFile(argv[2])==-1)
+			{
+				fprintf(stderr, "Cannot open given xls file.\n");
+				return -1;
+			}
+			fileHandler.generateTSFile();
+			if(system("lrelease ts_output/*")!=0)
+				fprintf(stderr, "Generate qm file ... %s.\n", strerror(errno));
+			else
+				printf("Generate qm file ... done.\n");
 
-	GetFileStringUnicode fileHandler("gui_strings_20140522.xls");
-	//if(!(fileHandler.parseUsedCharacter()))
-		//return -1;
-	//fileHandler.modifyFontRange(0x3040, 0x30ff, 1);//add full japanese
-	//if(!(fileHandler.generateFont()))
-		//return -1;
-	//fileHandler.generateTSFile();
+			break;
+		default:
+			print_usage();
+	}
 	return 0;
 }
