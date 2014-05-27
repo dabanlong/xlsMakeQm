@@ -17,8 +17,9 @@ static void print_usage()
 {
 	cout << "Usage: genqm [arg1] [filepath]" << endl;
 	cout << "args:\n";
-	cout << "  -c,\tParse strings in QObject::tr() and generate xml file.\n";
-	cout << "     \tIt will get all source GUI strings, and make a xml file for you to make a xls file.\n";
+	cout << "  -c,\tSpecify your Qt project path It will do the following:\n";
+	cout <<	"     \t-Parse strings in QObject::tr() and generate xml file.\n";
+	cout << "     \t-Get all source GUI strings, and make a xml file for you to make a xls file.\n";
 	cout << "  -x,\tGenerate qm files from given xls files.\n";
 }
 
