@@ -41,7 +41,7 @@ void ParseGuiString::parseStringsInTr(const char* filename)
 
 	for(auto it = filename_list.begin(); it != filename_list.end(); ++it)
 	{
-		fp = fopen(it->c_str(), "r");
+		fp = fopen(it->c_str(), "rb");
 		if(fp == NULL)
 			continue;
 
@@ -57,7 +57,21 @@ void ParseGuiString::parseStringsInTr(const char* filename)
 				char tr_string[s+1];
 				memset(tr_string, 0, s+1);
 				strncpy(tr_string, (tr+sizeof("QObject::tr(\""))-1, s);
-				trStringList.push_back(std::string(tr_string));
+				std::string tmp_str(tr_string);
+				std::size_t found = tmp_str.find("\\n");
+				while(found!=std::string::npos)
+				{
+					tmp_str.replace(found, found+1, "\n");
+					found = tmp_str.find("\\n", found);
+				}
+				found = tmp_str.find("\\t");
+				while(found!=std::string::npos)
+				{
+					tmp_str.replace(found, found+1, "\t");
+					found = tmp_str.find("\\t", found);
+				}
+				std::cout<<tmp_str<<std::endl;
+				trStringList.push_back(tmp_str);
 				printf("Get string : %s\n", tr_string);
 				tr = end_of_tr+sizeof("\")");
 			}
@@ -84,7 +98,7 @@ void ParseGuiString::genXmlFromTrStrings()
 			fprintf(stderr, "create dir error: %s\n", strerror(errno));
 	}
 	FILE *fp;
-	fp = fopen("ts_output/source.xml", "w+");
+	fp = fopen("ts_output/source.xml", "w");
 	if(fp==NULL)
 	{
 		fprintf(stderr, "open file error: %s\n. stop generating xml file.", strerror(errno));

@@ -161,6 +161,7 @@ void XlsHandler::generateTSFile()
 			{
 				string filename;
 				filename+="ts_output/";
+				filename+="i80_";
 				filename+=pWS->rows.row[1].cells.cell[tt].str;
 				filename+=".ts";
 				std::ofstream ofs(filename, std::ofstream::out | std::ofstream::trunc);
@@ -194,7 +195,7 @@ void XlsHandler::generateTSFile()
 #if 0
 	for(int i = 0; i < pWB->sheets.count; ++i)
 	{
-		QFile fileo(QString("./ts_output/%1.ts").arg(QString::fromStdString(LANGUAGE_STRINGS[i])));
+		QFile fileo(QString("./ts_output/%1_%2.ts").arg("i80").arg(QString::fromStdString(LANGUAGE_STRINGS[i])));
 		fileo.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
 		QTextStream streamo(&fileo);
 		streamo.setCodec("UTF-8");
