@@ -61,13 +61,13 @@ void ParseGuiString::parseStringsInTr(const char* filename)
 				std::size_t found = tmp_str.find("\\n");
 				while(found!=std::string::npos)
 				{
-					tmp_str.replace(found, found+1, "\n");
+					tmp_str.replace(found, 2, "\n");
 					found = tmp_str.find("\\n", found);
 				}
 				found = tmp_str.find("\\t");
 				while(found!=std::string::npos)
 				{
-					tmp_str.replace(found, found+1, "\t");
+					tmp_str.replace(found, 2, "\t");
 					found = tmp_str.find("\\t", found);
 				}
 				std::cout<<tmp_str<<std::endl;
