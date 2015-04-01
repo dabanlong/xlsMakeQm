@@ -4,7 +4,7 @@ AM_CPPFLAGS = -I$(HOME)/include -I$(PWD)/libxls-0.2.0/include -L$(HOME)/lib -std
 
 bin_PROGRAMS = genqm
 genqm_CFLAGS  = $(GTK_CFLAGS)
-genqm_LDADD   = $(GTK_LIBS) $(INTLLIBS) -L$(HOME)/lib -lxlsreader -liconv -lm
+genqm_LDADD   = $(GTK_LIBS) $(INTLLIBS) -L$(HOME)/lib -lxlsreader -lm
 genqm_SOURCES = main.cpp\
 				ParseGuiString.cpp\
 				ParseGuiString.h\
