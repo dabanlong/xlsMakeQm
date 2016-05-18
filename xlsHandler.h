@@ -12,22 +12,28 @@ using namespace std;
 class XlsHandler
 {
 public:
-	XlsHandler(char* fileName, char* type="UTF-8");
-	XlsHandler():pWB(NULL), pWS(NULL){}
-	int dumpStringToUnicode();
-	xlsWorkBook* getBook(){return this->pWB;}
-	std::set<unsigned short> getCodeList(){return this->cellStrUnicodeList;}
-	int setXlsFile(const char*, char* type="UTF-8");
-	void showBookInfo();
-	void generateTSFile();
-	void getLangCodeList();
-	~XlsHandler();
+    XlsHandler(char *fileName, char *type="UTF-8");
+    XlsHandler():pWB(NULL), pWS(NULL) {}
+    int dumpStringToUnicode();
+    xlsWorkBook *getBook()
+    {
+        return this->pWB;
+    }
+    std::set<unsigned short> getCodeList()
+    {
+        return this->cellStrUnicodeList;
+    }
+    int setXlsFile(const char *, char *type="UTF-8");
+    void showBookInfo();
+    void generateTSFile();
+    void getLangCodeList();
+    ~XlsHandler();
 private:
-	xlsWorkBook* pWB;
-	xlsWorkSheet* pWS;
-	std::set<unsigned short> cellStrUnicodeList;
-	vector<string> langCodeList;
-	vector<string> sourceStringList;
+    xlsWorkBook *pWB;
+    xlsWorkSheet *pWS;
+    std::set<unsigned short> cellStrUnicodeList;
+    vector<string> langCodeList;
+    vector<string> sourceStringList;
 
 };
 #endif
